@@ -21,29 +21,11 @@ const chat = require('./routes/chat');
 
 const app = express();
 
-// --- START: UNIFIED CORS CONFIGURATION FIX ---
-const allowedOrigins = [
-    'http://localhost:3000', // Your local frontend
-    process.env.FRONTEND_URL  // Your deployed frontend on Vercel
-];
-
-const corsOptions = {
-    origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) === -1) {
-            const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-            return callback(new Error(msg), false);
-        }
-        return callback(null, true);
-    },
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-    credentials: true
-};
-
-// Apply the unified CORS options to the entire app
-app.use(cors(corsOptions));
-// --- END: UNIFIED CORS CONFIGURATION FIX ---
+// --- START: SIMPLIFIED CORS DEBUGGING FIX ---
+// We are temporarily removing the complex configuration and using the simplest possible one.
+// This allows all origins and all methods.
+app.use(cors());
+// --- END: SIMPLIFIED CORS DEBUGGING FIX ---
 
 app.use(express.json());
 
@@ -54,18 +36,20 @@ app.use('/api/tasks', tasks);
 app.use('/api/ai', ai);
 app.use('/api/chat', chat);
 
-// --- Socket.io Integration ---
 const server = http.createServer(app);
-// Pass the SAME corsOptions to Socket.io
 const io = new Server(server, {
-    cors: corsOptions
+    // Also simplify the Socket.io CORS to match
+    cors: {
+        origin: "*", // Allow all origins
+        methods: ["GET", "POST", "PUT", "DELETE"]
+    }
 });
 
 app.set('socketio', io);
 
+// ... (rest of your socket.io logic remains the same)
 io.on('connection', (socket) => {
     console.log('A user connected with socket id:', socket.id);
-    // ... (rest of your socket.io logic remains the same)
     socket.on('joinProject', (projectId) => {
         socket.join(projectId);
         console.log(`User ${socket.id} joined project room ${projectId}`);
@@ -88,7 +72,6 @@ io.on('connection', (socket) => {
         console.log('User disconnected:', socket.id);
     });
 });
-// --- End Socket.io Integration ---
 
 const PORT = process.env.PORT || 5000;
 
