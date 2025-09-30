@@ -21,8 +21,30 @@ const chat = require('./routes/chat');
 
 const app = express();
 
-// Middleware
-app.use(cors());
+// --- START: UNIFIED CORS CONFIGURATION FIX ---
+const allowedOrigins = [
+    'http://localhost:3000', // Your local frontend
+    process.env.FRONTEND_URL  // Your deployed frontend on Vercel
+];
+
+const corsOptions = {
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) === -1) {
+            const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+            return callback(new Error(msg), false);
+        }
+        return callback(null, true);
+    },
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    credentials: true
+};
+
+// Apply the unified CORS options to the entire app
+app.use(cors(corsOptions));
+// --- END: UNIFIED CORS CONFIGURATION FIX ---
+
 app.use(express.json());
 
 // Mount API routers
@@ -34,55 +56,42 @@ app.use('/api/chat', chat);
 
 // --- Socket.io Integration ---
 const server = http.createServer(app);
+// Pass the SAME corsOptions to Socket.io
 const io = new Server(server, {
-  cors: {
-    origin: "http://localhost:3000",
-    methods: ["GET", "POST"]
-  }
+    cors: corsOptions
 });
 
-// We will pass the `io` instance to our controllers so they can emit events
 app.set('socketio', io);
 
 io.on('connection', (socket) => {
-  console.log('A user connected with socket id:', socket.id);
-
-  socket.on('joinProject', (projectId) => {
-    socket.join(projectId);
-    console.log(`User ${socket.id} joined project room ${projectId}`);
-  });
-
-  // --- NEW: Handle incoming chat messages ---
-  socket.on('sendMessage', async ({ projectId, content, senderId }) => {
-    try {
-        const message = new Message({
-            content,
-            sender: senderId,
-            project: projectId,
-        });
-        await message.save();
-
-        // Populate sender details before broadcasting
-        const populatedMessage = await Message.findById(message._id).populate('sender', 'name email');
-
-        // Broadcast the new message to everyone in the project room
-        io.to(projectId).emit('newMessage', populatedMessage);
-    } catch (error) {
-        console.error('Error handling message:', error);
-    }
-  });
-
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
-  });
+    console.log('A user connected with socket id:', socket.id);
+    // ... (rest of your socket.io logic remains the same)
+    socket.on('joinProject', (projectId) => {
+        socket.join(projectId);
+        console.log(`User ${socket.id} joined project room ${projectId}`);
+    });
+    socket.on('sendMessage', async ({ projectId, content, senderId }) => {
+        try {
+            const message = new Message({
+                content,
+                sender: senderId,
+                project: projectId,
+            });
+            await message.save();
+            const populatedMessage = await Message.findById(message._id).populate('sender', 'username email');
+            io.to(projectId).emit('newMessage', populatedMessage);
+        } catch (error) {
+            console.error('Error handling message:', error);
+        }
+    });
+    socket.on('disconnect', () => {
+        console.log('User disconnected:', socket.id);
+    });
 });
 // --- End Socket.io Integration ---
 
-
 const PORT = process.env.PORT || 5000;
 
-// Start the server by listening on the http server, not the app
 server.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
 });
-
