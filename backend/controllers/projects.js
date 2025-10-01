@@ -7,14 +7,14 @@ const User = require('../models/User');
 // @access  Private
 exports.getProjects = async (req, res) => {
     try {
-        // --- FIX: Added .populate('members.user', 'name email') to fetch member details ---
+        // --- FIX: Added .populate() to fetch full member details ---
         const projects = await Project.find({ 'members.user': req.user.id })
             .populate('owner', 'name email')
             .populate('members.user', 'name email');
 
         res.status(200).json({ success: true, count: projects.length, data: projects });
     } catch (err) {
-        res.status(500).json({ success: false, message: 'Server Error' });
+        res.status(500).json({ success: false, msg: 'Server Error' });
     }
 };
 
@@ -23,14 +23,16 @@ exports.getProjects = async (req, res) => {
 // @access  Private
 exports.getProject = async (req, res) => {
     try {
-        const project = await Project.findById(req.params.id).populate('owner', 'name email').populate('members.user', 'name email');
+        const project = await Project.findById(req.params.id)
+            .populate('owner', 'name email')
+            .populate('members.user', 'name email');
 
         if (!project || !project.members.some(member => member.user._id.equals(req.user.id))) {
-            return res.status(404).json({ success: false, message: 'Project not found or you are not a member' });
+            return res.status(404).json({ success: false, msg: 'Project not found or you are not a member' });
         }
         res.status(200).json({ success: true, data: project });
     } catch (err) {
-        res.status(500).json({ success: false, message: 'Server Error' });
+        res.status(500).json({ success: false, msg: 'Server Error' });
     }
 };
 
@@ -43,10 +45,15 @@ exports.createProject = async (req, res) => {
         req.body.members = [{ user: req.user.id, role: 'admin' }];
 
         const project = await Project.create(req.body);
-        const populatedProject = await Project.findById(project._id).populate('owner', 'name email').populate('members.user', 'name email');
+
+        // --- FIX: Populate details before sending response ---
+        const populatedProject = await Project.findById(project._id)
+            .populate('owner', 'name email')
+            .populate('members.user', 'name email');
+            
         res.status(201).json({ success: true, data: populatedProject });
     } catch (err) {
-        res.status(400).json({ success: false, message: err.message });
+        res.status(400).json({ success: false, msg: err.message });
     }
 };
 
@@ -56,20 +63,19 @@ exports.createProject = async (req, res) => {
 exports.updateProject = async (req, res) => {
     try {
         let project = await Project.findById(req.params.id);
-        if (!project) {
-            return res.status(404).json({ success: false, message: 'Project not found' });
+        if (!project || project.owner.toString() !== req.user.id) {
+            return res.status(404).json({ success: false, msg: 'Project not found or not authorized' });
         }
-        const member = project.members.find(m => m.user.equals(req.user.id));
-        if (!member || member.role !== 'admin') {
-            return res.status(403).json({ success: false, message: 'Not authorized to update this project' });
-        }
+        
+        // --- FIX: Populate details after updating ---
         project = await Project.findByIdAndUpdate(req.params.id, req.body, {
             new: true,
             runValidators: true,
         }).populate('members.user', 'name email');
+
         res.status(200).json({ success: true, data: project });
     } catch (err) {
-        res.status(400).json({ success: false, message: err.message });
+        res.status(400).json({ success: false, msg: err.message });
     }
 };
 
@@ -80,13 +86,13 @@ exports.deleteProject = async (req, res) => {
     try {
         const project = await Project.findById(req.params.id);
         if (!project || project.owner.toString() !== req.user.id) {
-            return res.status(404).json({ success: false, message: 'Project not found or not authorized' });
+            return res.status(404).json({ success: false, msg: 'Project not found or not authorized' });
         }
         await Task.deleteMany({ project: req.params.id });
         await project.deleteOne();
         res.status(200).json({ success: true, data: {} });
     } catch (err) {
-        res.status(500).json({ success: false, message: 'Server Error' });
+        res.status(500).json({ success: false, msg: 'Server Error' });
     }
 };
 
@@ -96,27 +102,36 @@ exports.deleteProject = async (req, res) => {
 exports.addProjectMember = async (req, res) => {
     try {
         const project = await Project.findById(req.params.id);
+        
         if (!project) {
-            return res.status(404).json({ success: false, message: 'Project not found' });
+            return res.status(404).json({ success: false, msg: 'Project not found' });
         }
+
         const isAdmin = project.members.some(member => member.user.equals(req.user.id) && member.role === 'admin');
         if (!isAdmin) {
-            return res.status(403).json({ success: false, message: 'Not authorized to add members' });
+            return res.status(403).json({ success: false, msg: 'Not authorized to add members to this project' });
         }
+
         const { email } = req.body;
         const userToInvite = await User.findOne({ email });
+
         if (!userToInvite) {
-            return res.status(404).json({ success: false, message: `User with email ${email} not found` });
+            return res.status(404).json({ success: false, msg: `User with email ${email} not found` });
         }
-        if (project.members.some(member => member.user.equals(userToInvite._id))) {
-            return res.status(400).json({ success: false, message: 'User is already a member' });
+        
+        const isAlreadyMember = project.members.some(member => member.user.equals(userToInvite._id));
+        if (isAlreadyMember) {
+            return res.status(400).json({ success: false, msg: 'User is already a member of this project' });
         }
+
         project.members.push({ user: userToInvite._id, role: 'member' });
         await project.save();
+        
         const updatedProject = await Project.findById(req.params.id).populate('members.user', 'name email');
         res.status(200).json({ success: true, data: updatedProject });
+
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Server Error' });
+        res.status(500).json({ success: false, msg: 'Server Error' });
     }
 };
 
@@ -126,23 +141,30 @@ exports.addProjectMember = async (req, res) => {
 exports.removeProjectMember = async (req, res) => {
     try {
         const project = await Project.findById(req.params.id);
+
         if (!project) {
-            return res.status(404).json({ success: false, message: 'Project not found' });
+            return res.status(404).json({ success: false, msg: 'Project not found' });
         }
+
         const isAdmin = project.members.some(member => member.user.equals(req.user.id) && member.role === 'admin');
         if (!isAdmin) {
-            return res.status(403).json({ success: false, message: 'Not authorized to remove members' });
+            return res.status(403).json({ success: false, msg: 'Not authorized to remove members' });
         }
+
         const memberIdToRemove = req.params.memberId;
+        
         if (project.owner.equals(memberIdToRemove)) {
-            return res.status(400).json({ success: false, message: 'Cannot remove the project owner' });
+            return res.status(400).json({ success: false, msg: 'Cannot remove the project owner' });
         }
+
         project.members = project.members.filter(member => !member.user.equals(memberIdToRemove));
         await project.save();
+        
         const updatedProject = await Project.findById(req.params.id).populate('members.user', 'name email');
         res.status(200).json({ success: true, data: updatedProject });
+
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Server Error' });
+        res.status(500).json({ success: false, msg: 'Server Error' });
     }
 };
 
@@ -152,27 +174,36 @@ exports.removeProjectMember = async (req, res) => {
 exports.updateMemberRole = async (req, res) => {
     try {
         const project = await Project.findById(req.params.id);
+
         if (!project) {
-            return res.status(404).json({ success: false, message: 'Project not found' });
+            return res.status(404).json({ success: false, msg: 'Project not found' });
         }
+
         const isAdmin = project.members.some(member => member.user.equals(req.user.id) && member.role === 'admin');
         if (!isAdmin) {
-            return res.status(403).json({ success: false, message: 'Not authorized to change roles' });
+            return res.status(403).json({ success: false, msg: 'Not authorized to change roles' });
         }
+
         const memberIdToUpdate = req.params.memberId;
         const memberToUpdate = project.members.find(member => member.user.equals(memberIdToUpdate));
+        
         if (!memberToUpdate) {
-            return res.status(404).json({ success: false, message: 'Member not found in this project' });
+            return res.status(404).json({ success: false, msg: 'Member not found in this project' });
         }
+
         if (project.owner.equals(memberIdToUpdate)) {
-            return res.status(400).json({ success: false, message: 'Cannot change the project owner\'s role' });
+            return res.status(400).json({ success: false, msg: 'Cannot change the project owner\'s role' });
         }
+
         memberToUpdate.role = req.body.role;
         await project.save();
+        
         const updatedProject = await Project.findById(req.params.id).populate('members.user', 'name email');
+
         res.status(200).json({ success: true, data: updatedProject });
+
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Server Error' });
+        res.status(500).json({ success: false, msg: 'Server Error' });
     }
 };
 
