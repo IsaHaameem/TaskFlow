@@ -10,21 +10,21 @@ export default function Chat({ projectId }) {
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(true);
     const chatEndRef = useRef(null);
+    const socketRef = useRef(null); // <-- 1. Create a ref to hold the socket instance
 
-    // --- FIX: Define the production API URL from environment variables ---
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
-    // Effect to scroll to the bottom of the chat on new messages
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
-    // Effect for Socket.io listeners
     useEffect(() => {
         if (!projectId || !user || !apiUrl) return;
-        
-        // --- FIX: Use the apiUrl variable for the socket connection ---
-        const socket = io(apiUrl);
+
+        // --- FIX: Use a single, persistent socket connection ---
+        // Store the socket in the ref so it persists across re-renders
+        socketRef.current = io(apiUrl);
+        const socket = socketRef.current;
 
         socket.emit('joinProject', projectId);
 
@@ -40,7 +40,6 @@ export default function Chat({ projectId }) {
         };
     }, [projectId, user, apiUrl]);
 
-    // Effect for fetching initial chat history
     useEffect(() => {
         const fetchMessages = async () => {
             if (!token || !apiUrl) {
@@ -49,7 +48,6 @@ export default function Chat({ projectId }) {
             }
             setLoading(true);
             try {
-                // --- FIX: Use the apiUrl variable ---
                 const res = await fetch(`${apiUrl}/api/chat?projectId=${projectId}`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
@@ -68,17 +66,16 @@ export default function Chat({ projectId }) {
 
     const handleSendMessage = (e) => {
         e.preventDefault();
-        if (newMessage.trim() && user && apiUrl) {
-            // Re-initialize socket for sending the message
-            const socket = io(apiUrl);
+        // --- FIX: Use the persistent socket from the ref ---
+        const socket = socketRef.current;
+        if (newMessage.trim() && user && socket) {
             socket.emit('sendMessage', {
                 projectId,
                 content: newMessage,
                 senderId: user.id,
             });
             setNewMessage('');
-            // Disconnect after sending to avoid multiple connections
-            socket.disconnect();
+            // Do NOT disconnect here
         }
     };
 
@@ -125,3 +122,4 @@ export default function Chat({ projectId }) {
         </div>
     );
 }
+
