@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react'; // Import useCallback
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import Link from 'next/link';
 import Modal from '../../components/Modal';
@@ -11,7 +11,6 @@ const EditIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-
 const TrashIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>;
 
 const ProjectCard = ({ project, onEdit, onDelete }) => {
-    // ... (ProjectCard component remains the same)
     const [menuOpen, setMenuOpen] = useState(false);
     return (
         <div className="bg-white rounded-lg shadow p-6 relative group transition-shadow hover:shadow-md">
@@ -54,14 +53,17 @@ export default function DashboardPage() {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [projectToDelete, setProjectToDelete] = useState(null);
 
-    // FIX #1: Wrapped fetchProjects in useCallback
+    // --- FIX: Define the production API URL from environment variables ---
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
     const fetchProjects = useCallback(async () => {
-        if (token) {
+        if (token && apiUrl) {
             setIsFetching(true);
             setFetchError(null);
             try {
-                const res = await fetch('http://localhost:5001/api/projects', { headers: { 'Authorization': `Bearer ${token}` } });
-                if (!res.ok) throw new Error('Failed to fetch projects.');
+                // --- FIX: Use the apiUrl variable ---
+                const res = await fetch(`${apiUrl}/api/projects`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) throw new Error('Failed to fetch');
                 const data = await res.json();
                 if (data.success) setProjects(data.data);
                 else throw new Error(data.msg || 'An error occurred.');
@@ -73,16 +75,14 @@ export default function DashboardPage() {
         } else {
             setIsFetching(false);
         }
-    }, [token]);
+    }, [token, apiUrl]);
 
-    // FIX #2: Added fetchProjects to the dependency array
     useEffect(() => {
         if (user) {
             fetchProjects();
         }
     }, [user, fetchProjects]);
 
-    // ... (other handlers like handleLogout, handleFormChange, etc. remain the same)
     const handleLogout = () => {
         logoutAction();
     };
@@ -108,10 +108,11 @@ export default function DashboardPage() {
         }
     };
     const handleCreateProject = async () => {
-        if (!projectData.name.trim()) { setFormError('Project name is required.'); return; }
+        if (!projectData.name.trim() || !apiUrl) { return; }
         setFormError('');
         try {
-            const res = await fetch('http://localhost:5001/api/projects', {
+            // --- FIX: Use the apiUrl variable ---
+            const res = await fetch(`${apiUrl}/api/projects`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(projectData),
@@ -121,17 +122,18 @@ export default function DashboardPage() {
                 setIsEditModalOpen(false);
                 await fetchProjects();
             } else {
-                setFormError(data.msg || 'Failed to create project.');
+                setFormError(data.msg || 'An error occurred.');
             }
         } catch (error) {
             setFormError('An error occurred.');
         }
     };
     const handleUpdateProject = async () => {
-        if (!projectData.name.trim()) { setFormError('Project name is required.'); return; }
+        if (!projectData.name.trim() || !apiUrl) { return; }
         setFormError('');
         try {
-            const res = await fetch(`http://localhost:5001/api/projects/${editingProject._id}`, {
+            // --- FIX: Use the apiUrl variable ---
+            const res = await fetch(`${apiUrl}/api/projects/${editingProject._id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(projectData)
@@ -153,9 +155,10 @@ export default function DashboardPage() {
         setIsDeleteModalOpen(true);
     };
     const handleConfirmDelete = async () => {
-        if (!projectToDelete) return;
+        if (!projectToDelete || !apiUrl) return;
         try {
-            await fetch(`http://localhost:5001/api/projects/${projectToDelete._id}`, {
+            // --- FIX: Use the apiUrl variable ---
+            await fetch(`${apiUrl}/api/projects/${projectToDelete._id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -171,7 +174,6 @@ export default function DashboardPage() {
     return (
         <>
             <div className="min-h-screen bg-gray-100">
-                {/* ... (header and main content structure remains the same) ... */}
                 <header className="bg-white shadow-sm">
                     <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
                         <h1 className="text-2xl font-bold text-gray-900">TaskFlow Dashboard</h1>
@@ -201,7 +203,6 @@ export default function DashboardPage() {
             </div>
 
             <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title={editingProject ? 'Edit Project' : 'Create a New Project'}>
-                {/* ... (Edit/Create Modal form remains the same) ... */}
                 <form onSubmit={handleFormSubmit}>
                     <div className="space-y-4">
                         <div>
@@ -225,7 +226,6 @@ export default function DashboardPage() {
                 {projectToDelete && (
                     <div>
                         <p className="text-sm text-gray-600">
-                            {/* FIX #3: Replaced " with &quot; */}
                             Are you sure you want to delete the project <span className="font-bold">&quot;{projectToDelete.name}&quot;</span>?
                             This will permanently delete the project and all of its tasks. This action cannot be undone.
                         </p>
