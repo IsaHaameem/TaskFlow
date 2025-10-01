@@ -63,7 +63,7 @@ export default function DashboardPage() {
             try {
                 // --- FIX: Use the apiUrl variable ---
                 const res = await fetch(`${apiUrl}/api/projects`, { headers: { 'Authorization': `Bearer ${token}` } });
-                if (!res.ok) throw new Error('Failed to fetch');
+                if (!res.ok) throw new Error('Failed to fetch projects.');
                 const data = await res.json();
                 if (data.success) setProjects(data.data);
                 else throw new Error(data.msg || 'An error occurred.');
@@ -72,16 +72,14 @@ export default function DashboardPage() {
             } finally {
                 setIsFetching(false);
             }
-        } else {
+        } else if (!token) {
             setIsFetching(false);
         }
     }, [token, apiUrl]);
 
     useEffect(() => {
-        if (user) {
-            fetchProjects();
-        }
-    }, [user, fetchProjects]);
+        fetchProjects();
+    }, [fetchProjects]);
 
     const handleLogout = () => {
         logoutAction();
@@ -186,7 +184,7 @@ export default function DashboardPage() {
                             <h2 className="text-xl font-semibold text-gray-800">Your Projects</h2>
                             <button onClick={handleOpenCreateModal} className="py-2 px-4 rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700">+ Create New Project</button>
                         </div>
-                        {isFetching ? <p>Loading projects...</p> : fetchError ? <p className="text-red-500">Error: {fetchError}</p> : projects.length > 0 ? (
+                        {isFetching ? <p className="text-gray-500">Loading projects...</p> : fetchError ? <p className="text-red-500 font-semibold">Error: {fetchError}</p> : projects.length > 0 ? (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {projects.map((project) => (
                                     <ProjectCard key={project._id} project={project} onEdit={handleOpenEditModal} onDelete={handleOpenDeleteModal} />
