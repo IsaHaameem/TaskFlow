@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '../../context/AuthContext';
 
 export default function SignUpPage() {
-    // --- FIX: Changed 'name' to 'username' to match the backend model ---
+    // --- FIX: State now uses 'username' to match the backend model ---
     const [formData, setFormData] = useState({ username: '', email: '', password: '' });
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -23,7 +23,7 @@ export default function SignUpPage() {
         e.preventDefault();
         setError(null);
         setLoading(true);
-        
+
         if (formData.password.length < 6) {
             setError('Password must be at least 6 characters long.');
             setLoading(false);
@@ -36,13 +36,15 @@ export default function SignUpPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
             });
+
             const data = await res.json();
             
-            if (data.success) {
-                // Auto-login after successful registration
+            if (res.ok && data.success) {
+                // If registration is successful, automatically log the new user in
                 await loginAction({ email: formData.email, password: formData.password });
-                // The AuthContext will handle the redirect
+                // The AuthContext will automatically handle redirecting to the dashboard
             } else {
+                // Use the clear error message from our improved backend controller
                 setError(data.message || 'Registration failed.');
             }
         } catch (err) {
@@ -67,7 +69,7 @@ export default function SignUpPage() {
                 <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
                     <div className="rounded-md shadow-sm -space-y-px">
                         <div>
-                            {/* --- FIX: Input name is now 'username' --- */}
+                            {/* --- FIX: Input name is now 'username' and placeholder is updated --- */}
                             <input
                                 id="username"
                                 name="username"
