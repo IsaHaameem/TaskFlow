@@ -16,9 +16,9 @@ const EditIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-
 const FireIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clipRule="evenodd" /></svg>;
 const ClockIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.414-1.415L11 9.586V6z" clipRule="evenodd" /></svg>;
 const IceIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clipRule="evenodd" /></svg>;
-const SparklesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5 2a1 1 0 00-1 1v1.172a2 2 0 01-.586 1.414l-1 1A1 1 0 003 8v2a1 1 0 001 1h1.172a2 2 0 011.414.586l1 1A1 1 0 008 13v1.172a2 2 0 01.586 1.414l-1 1A1 1 0 007 18v2a1 1 0 001 1h2a1 1 0 001-1v-1.172a2 2 0 01.586-1.414l1-1A1 1 0 0013 14V7a1 1 0 00-1-1H4a1 1 0 00-1-1H2a1 1 0 00-1 1v2a1 1 0 001 1h1.172a2 2 0 011.414.586l1 1A1 1 0 007 10v1.172a2 2 0 01-.586 1.414l-1 1A1 1 0 005 15v2a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 00-1-1H7a2 2 0 01-1.414-.586l-1-1A1 1 0 003 10V8a1 1 0 00-.293-.707L2 6.586V4a1 1 0 00-1-1H0a1 1 0 00-1 1v2a1 1 0 001 1h1.172a2 2 0 011.414.586l1 1A1 1 0 005 10v2a1 1 0 001 1h2a1 1 0 001-1v-1.172a2 2 0 01-.586-1.414l-1-1A1 1 0 007 8V6a1 1 0 00-1-1H4a1 1 0 00-1 1v1.172a2 2 0 01-1.414.586L1 9.586V12a1 1 0 001 1h2a1 1 0 001-1V9.828a2 2 0 011.414-1.414l1.586-1.586A2 2 0 0110 5.414V4a1 1 0 00-1-1H7a1 1 0 00-1 1v1.414a2 2 0 01-1.414 1.414L3 8.414V11a1 1 0 001 1h2a1 1 0 001-1V9.414a2 2 0 011.414-1.414L9 6.586V5a1 1 0 00-1-1H6a1 1 0 00-1 1v1.586a2 2 0 01-1.414 1.414L2 9.414V12a1 1 0 001 1h1a1 1 0 001-1V9.586a2 2 0 011.414-1.414L8 6.586V5a1 1 0 00-1-1H5a1 1 0 00-1 1z" clipRule="evenodd" /></svg>;
+const SparklesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10 3.5c.828 0 1.5.672 1.5 1.5s-.672 1.5-1.5 1.5S8.5 5.828 8.5 5S9.172 3.5 10 3.5zM5 6.5c.828 0 1.5.672 1.5 1.5S5.828 9.5 5 9.5S3.5 8.828 3.5 8S4.172 6.5 5 6.5zm10 0c.828 0 1.5.672 1.5 1.5s-.672 1.5-1.5 1.5S13.5 8.828 13.5 8S14.172 6.5 15 6.5zM10 16.5c-.828 0-1.5-.672-1.5-1.5s.672-1.5 1.5-1.5.828.672 1.5 1.5-.672 1.5-1.5 1.5z"/></svg>;
 
-// --- Helper Components ---
+// --- FIX: Re-added the missing helper components ---
 const PriorityBadge = ({ priority }) => {
     const styles = {
         High: { icon: <FireIcon />, classes: 'text-red-600 bg-red-100' },
@@ -226,7 +226,7 @@ export default function ProjectPage() {
             });
             const data = await res.json();
             if (data.success) {
-                await fetchProject(); // Refetch project to get updated member roles
+                await fetchProject();
             } else {
                 throw new Error(data.msg || 'Failed to update role.');
             }
@@ -309,7 +309,6 @@ export default function ProjectPage() {
         }
     };
 
-    // --- FIX: Add the handleSummarizeTask function ---
     const handleSummarizeTask = async (task) => {
         if (!apiUrl) return;
         try {
@@ -320,13 +319,12 @@ export default function ProjectPage() {
             });
             const data = await res.json();
             if (data.success) {
-                // Update the task description with the summary
                 await fetch(`${apiUrl}/api/tasks/${task._id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({ description: data.data }),
                 });
-                await fetchTasks(); // Refetch tasks to show the updated description
+                await fetchTasks();
             }
         } catch (error) {
             console.error("Failed to summarize task:", error);
@@ -353,6 +351,9 @@ export default function ProjectPage() {
     if (loading || authLoading) return <div className="flex justify-center items-center min-h-screen"><p>Loading project...</p></div>;
     if (error) return <div className="flex justify-center items-center min-h-screen"><p className="text-red-500">Error: {error}</p></div>;
     if (!project) return <div className="flex justify-center items-center min-h-screen"><p>Project not found.</p></div>;
+    
+    // --- FIX: Define the columns array inside the component scope ---
+    const columns = ['To Do', 'In Progress', 'Done'];
 
     return (
         <>
@@ -430,7 +431,7 @@ export default function ProjectPage() {
                                         onOpenModal={handleOpenAddTaskModal}
                                         onDeleteTask={handleDeleteTask}
                                         onEditTask={handleOpenEditTaskModal}
-                                        onSummarizeTask={handleSummarizeTask} // <-- Pass the function here
+                                        onSummarizeTask={handleSummarizeTask}
                                     />
                                 ))}
                             </div>
@@ -499,11 +500,11 @@ export default function ProjectPage() {
                     <svg className={`h-6 w-6 transform transition-transform ${isChatOpen ? 'rotate-45' : 'rotate-0'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.862 9.862 0 01-4-.8L3 20l1.2-3.6A8 8 0 113 12" /></svg>
                 </button>
             </div>
-            <div className={`fixed right-6 bottom-6 z-40 transform transition-transform duration-300 ${isChatOpen ? 'translate-x-full' : 'translate-x-[calc(100%-400px)]'}`} style={{ width: 380, height: '80vh' }}>
+            <div className={`fixed right-6 bottom-20 z-40 transform transition-all duration-300 ease-in-out ${isChatOpen ? 'opacity-100' : 'opacity-0 translate-y-4 pointer-events-none'}`} style={{ width: 380, height: '70vh', maxHeight: '500px' }}>
                 <div className="h-full w-full bg-white shadow-2xl rounded-lg overflow-hidden flex flex-col">
                     <div className="flex items-center justify-between px-4 py-2 border-b">
                         <div className="flex items-center gap-3"><div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-semibold">C</div><div><p className="text-sm font-semibold">Project Chat</p><p className="text-xs text-gray-500">Chat with your team</p></div></div>
-                        <button onClick={() => setIsChatOpen(false)} aria-label="Close chat" className="px-3 py-1 rounded-md hover:bg-gray-100">
+                        <button onClick={() => setIsChatOpen(false)} aria-label="Close chat" className="p-2 rounded-full hover:bg-gray-100">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.536-10.95a1 1 0 10-1.414-1.414L10 8.586 7.879 6.464a1 1 0 10-1.414 1.414L8.586 10l-2.12 2.121a1 1 0 101.414 1.415L10 11.414l2.121 2.121a1 1 0 001.414-1.415L11.414 10l2.122-2.122z" clipRule="evenodd" /></svg>
                         </button>
                     </div>
