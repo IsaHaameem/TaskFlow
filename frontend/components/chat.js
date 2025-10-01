@@ -10,7 +10,7 @@ export default function Chat({ projectId }) {
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(true);
     const chatEndRef = useRef(null);
-    const socketRef = useRef(null); // <-- 1. Create a ref to hold the socket instance
+    const socketRef = useRef(null);
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -21,19 +21,18 @@ export default function Chat({ projectId }) {
     useEffect(() => {
         if (!projectId || !user || !apiUrl) return;
 
-        // --- FIX: Use a single, persistent socket connection ---
-        // Store the socket in the ref so it persists across re-renders
         socketRef.current = io(apiUrl);
         const socket = socketRef.current;
-
         socket.emit('joinProject', projectId);
 
         const messageListener = (incomingMessage) => {
-            setMessages((prevMessages) => [...prevMessages, incomingMessage]);
+            // Defensive check to ensure incoming message has the required structure
+            if (incomingMessage && incomingMessage.sender && incomingMessage.sender._id) {
+                 setMessages((prevMessages) => [...prevMessages, incomingMessage]);
+            }
         };
         socket.on('newMessage', messageListener);
 
-        // Clean up on component unmount
         return () => {
             socket.off('newMessage', messageListener);
             socket.disconnect();
@@ -42,19 +41,14 @@ export default function Chat({ projectId }) {
 
     useEffect(() => {
         const fetchMessages = async () => {
-            if (!token || !apiUrl) {
-                setLoading(false);
-                return;
-            }
+            if (!token || !apiUrl) { setLoading(false); return; }
             setLoading(true);
             try {
                 const res = await fetch(`${apiUrl}/api/chat?projectId=${projectId}`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 const data = await res.json();
-                if (data.success) {
-                    setMessages(data.data);
-                }
+                if (data.success) setMessages(data.data);
             } catch (error) {
                 console.error("Failed to fetch messages", error);
             } finally {
@@ -66,7 +60,6 @@ export default function Chat({ projectId }) {
 
     const handleSendMessage = (e) => {
         e.preventDefault();
-        // --- FIX: Use the persistent socket from the ref ---
         const socket = socketRef.current;
         if (newMessage.trim() && user && socket) {
             socket.emit('sendMessage', {
@@ -75,7 +68,6 @@ export default function Chat({ projectId }) {
                 senderId: user.id,
             });
             setNewMessage('');
-            // Do NOT disconnect here
         }
     };
 
@@ -85,20 +77,24 @@ export default function Chat({ projectId }) {
         <div className="flex flex-col h-full bg-white">
             <div className="flex-1 p-4 overflow-y-auto">
                 {messages.map((msg) => (
-                    <div
-                        key={msg._id}
-                        className={`flex items-end mb-4 ${msg.sender._id === user.id ? 'justify-end' : ''}`}
-                    >
-                        <div className={`flex flex-col space-y-1 text-sm max-w-xs mx-2 ${msg.sender._id === user.id ? 'order-1 items-end' : 'order-2 items-start'}`}>
-                            <span className="font-semibold text-gray-700">{msg.sender._id === user.id ? 'You' : msg.sender.name}</span>
-                            <span className={`px-4 py-2 rounded-lg inline-block ${msg.sender._id === user.id ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-800'}`}>
-                                {msg.content}
-                            </span>
+                    // --- FIX: Add a check to prevent rendering malformed messages ---
+                    msg && msg.sender && msg.sender._id && (
+                        <div
+                            key={msg._id}
+                            className={`flex items-end mb-4 ${msg.sender._id === user.id ? 'justify-end' : ''}`}
+                        >
+                            <div className={`flex flex-col space-y-1 text-sm max-w-xs mx-2 ${msg.sender._id === user.id ? 'order-1 items-end' : 'order-2 items-start'}`}>
+                                <span className="font-semibold text-gray-700">{msg.sender._id === user.id ? 'You' : msg.sender.name}</span>
+                                <span className={`px-4 py-2 rounded-lg inline-block ${msg.sender._id === user.id ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-800'}`}>
+                                    {msg.content}
+                                </span>
+                            </div>
+                            <div className={`h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xs flex-shrink-0 ${msg.sender._id === user.id ? 'order-2' : 'order-1'}`}>
+                                {/* --- FIX: Use optional chaining for safety --- */}
+                                {msg.sender.name?.charAt(0).toUpperCase() || '?'}
+                            </div>
                         </div>
-                        <div className={`h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xs flex-shrink-0 ${msg.sender._id === user.id ? 'order-2' : 'order-1'}`}>
-                            {msg.sender.name.charAt(0).toUpperCase()}
-                        </div>
-                    </div>
+                    )
                 ))}
                 <div ref={chatEndRef} />
             </div>
