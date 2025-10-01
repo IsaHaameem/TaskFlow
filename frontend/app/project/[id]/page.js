@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -16,9 +16,9 @@ const EditIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-
 const FireIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clipRule="evenodd" /></svg>;
 const ClockIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.414-1.415L11 9.586V6z" clipRule="evenodd" /></svg>;
 const IceIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clipRule="evenodd" /></svg>;
-const SparklesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10 3.5c.828 0 1.5.672 1.5 1.5s-.672 1.5-1.5 1.5S8.5 5.828 8.5 5S9.172 3.5 10 3.5zM5 6.5c.828 0 1.5.672 1.5 1.5S5.828 9.5 5 9.5S3.5 8.828 3.5 8S4.172 6.5 5 6.5zm10 0c.828 0 1.5.672 1.5 1.5s-.672 1.5-1.5 1.5S13.5 8.828 13.5 8S14.172 6.5 15 6.5zM10 16.5c-.828 0-1.5-.672-1.5-1.5s.672-1.5 1.5-1.5.828.672 1.5 1.5-.672 1.5-1.5 1.5z"/></svg>;
+const SparklesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5 2a1 1 0 00-1 1v1.172a2 2 0 01-.586 1.414l-1 1A1 1 0 003 8v2a1 1 0 001 1h1.172a2 2 0 011.414.586l1 1A1 1 0 008 13v1.172a2 2 0 01.586 1.414l-1 1A1 1 0 007 18v2a1 1 0 001 1h2a1 1 0 001-1v-1.172a2 2 0 01.586-1.414l1-1A1 1 0 0013 14V7a1 1 0 00-1-1H4a1 1 0 00-1-1H2a1 1 0 00-1 1v2a1 1 0 001 1h1.172a2 2 0 011.414.586l1 1A1 1 0 007 10v1.172a2 2 0 01-.586 1.414l-1 1A1 1 0 005 15v2a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 00-1-1H7a2 2 0 01-1.414-.586l-1-1A1 1 0 003 10V8a1 1 0 00-.293-.707L2 6.586V4a1 1 0 00-1-1H0a1 1 0 00-1 1v2a1 1 0 001 1h1.172a2 2 0 011.414.586l1 1A1 1 0 005 10v2a1 1 0 001 1h2a1 1 0 001-1v-1.172a2 2 0 01-.586-1.414l-1-1A1 1 0 007 8V6a1 1 0 00-1-1H4a1 1 0 00-1 1v1.172a2 2 0 01-1.414.586L1 9.586V12a1 1 0 001 1h2a1 1 0 001-1V9.828a2 2 0 011.414-1.414l1.586-1.586A2 2 0 0110 5.414V4a1 1 0 00-1-1H7a1 1 0 00-1 1v1.414a2 2 0 01-1.414 1.414L3 8.414V11a1 1 0 001 1h2a1 1 0 001-1V9.414a2 2 0 011.414-1.414L9 6.586V5a1 1 0 00-1-1H6a1 1 0 00-1 1v1.586a2 2 0 01-1.414 1.414L2 9.414V12a1 1 0 001 1h1a1 1 0 001-1V9.586a2 2 0 011.414-1.414L8 6.586V5a1 1 0 00-1-1H5a1 1 0 00-1 1z" clipRule="evenodd" /></svg>;
 
-
+// --- Helper Components ---
 const PriorityBadge = ({ priority }) => {
     const styles = {
         High: { icon: <FireIcon />, classes: 'text-red-600 bg-red-100' },
@@ -59,7 +59,9 @@ const TaskCard = ({ task, index, onDelete, onEdit, onSummarize }) => {
                     <div className="flex items-center justify-between mt-4">
                         <div className="flex items-center space-x-2">
                             <PriorityBadge priority={task.priority} />
-                            {task.dueDate && <span className="text-xs text-gray-500">{new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>}
+                            {task.dueDate && (
+                                <span className="text-xs text-gray-500">{new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                            )}
                         </div>
                         <button onClick={() => onEdit(task)} className="focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 rounded-full">
                             {task.assignee ? (
@@ -111,6 +113,7 @@ const KanbanColumn = ({ title, tasks, onOpenModal, onDeleteTask, onEditTask, onS
     );
 };
 
+
 export default function ProjectPage() {
     const { user, token, loading: authLoading } = useAuth();
     const router = useRouter();
@@ -143,9 +146,8 @@ export default function ProjectPage() {
 
     const fetchProject = useCallback(async () => {
         if (authLoading || !token || !projectId || !apiUrl) return;
+        setLoading(true);
         try {
-            setLoading(true);
-            setError(null);
             const res = await fetch(`${apiUrl}/api/projects/${projectId}`, { headers: { Authorization: `Bearer ${token}` } });
             if (!res.ok) throw new Error('Project not found or you do not have permission.');
             const data = await res.json();
@@ -161,6 +163,22 @@ export default function ProjectPage() {
     useEffect(() => {
         fetchProject();
     }, [fetchProject]);
+    
+    const fetchTasks = useCallback(async () => {
+        if (authLoading || !token || !projectId || !apiUrl) return;
+        try {
+            const res = await fetch(`${apiUrl}/api/tasks?projectId=${projectId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            if (data.success) setTasks(data.data);
+        } catch (err) {
+            console.error("Failed to fetch tasks", err);
+        }
+    }, [projectId, token, authLoading, apiUrl]);
+
+    useEffect(() => {
+        fetchTasks();
+    }, [fetchTasks]);
+
 
     const handleInviteMember = async (e) => {
         e.preventDefault();
@@ -174,9 +192,9 @@ export default function ProjectPage() {
             });
             const data = await res.json();
             if (res.ok && data.success) {
-                setInviteMessage({ type: 'success', text: 'Member invited successfully! The member list will update shortly.' });
+                setInviteMessage({ type: 'success', text: 'Member invited successfully!' });
                 setInviteEmail('');
-                setTimeout(() => fetchProject(), 1000); // Refetch to show new member
+                await fetchProject();
             } else {
                 setInviteMessage({ type: 'error', text: data.msg || 'Failed to invite member.' });
             }
@@ -184,12 +202,7 @@ export default function ProjectPage() {
             setInviteMessage({ type: 'error', text: 'An error occurred.' });
         }
     };
-
-    const handleOpenRemoveModal = (member) => {
-        setMemberToRemove(member);
-        setIsRemoveModalOpen(true);
-    };
-
+    const handleOpenRemoveModal = (member) => { setMemberToRemove(member); setIsRemoveModalOpen(true); };
     const handleConfirmRemoveMember = async () => {
         if (!memberToRemove || !apiUrl) return;
         try {
@@ -203,7 +216,6 @@ export default function ProjectPage() {
             setIsRemoveModalOpen(false);
         }
     };
-
     const handleRoleChange = async (memberId, newRole) => {
         if(!apiUrl) return;
         try {
@@ -214,7 +226,7 @@ export default function ProjectPage() {
             });
             const data = await res.json();
             if (data.success) {
-                await fetchProject();
+                await fetchProject(); // Refetch project to get updated member roles
             } else {
                 throw new Error(data.msg || 'Failed to update role.');
             }
@@ -223,83 +235,104 @@ export default function ProjectPage() {
         }
     };
 
-    // --- Kanban Board Logic ---
-    useEffect(() => {
-        const fetchTasks = async () => {
-            if (authLoading || !token || !projectId || !apiUrl) return;
-            try {
-                const res = await fetch(`${apiUrl}/api/tasks?projectId=${projectId}`, { headers: { 'Authorization': `Bearer ${token}` } });
-                const data = await res.json();
-                if (data.success) setTasks(data.data);
-            } catch (err) {
-                console.error("Failed to fetch tasks", err);
-            }
-        };
-        fetchTasks();
-    }, [projectId, token, authLoading, apiUrl, project]); // Refetch tasks when project members change
-
     const handleTaskFormChange = (e) => setTaskData({ ...taskData, [e.target.name]: e.target.value });
     const handleTaskFormSubmit = async (e) => {
         e.preventDefault();
         if (editingTask) await handleUpdateTask();
         else await handleAddTask();
     };
-
     const handleAddTask = async () => {
-        if (!apiUrl || !taskData.title.trim()) return;
+        if (!taskData.title.trim() || !apiUrl) { setFormError("Task title is required."); return; }
+        setFormError('');
         try {
             const res = await fetch(`${apiUrl}/api/tasks`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ ...taskData, project: projectId, status: 'To Do' }),
             });
             const data = await res.json();
-            if(data.success) {
-                setTasks(prev => [...prev, data.data]);
+            if (data.success) {
                 setIsTaskModalOpen(false);
-            }
-        } catch(err) { console.error(err); }
+                await fetchTasks();
+            } else setFormError(data.msg || "Failed to create task.");
+        } catch (error) {
+            setFormError("An error occurred.");
+        }
     };
     const handleUpdateTask = async () => {
-        if (!apiUrl || !editingTask) return;
+        if (!taskData.title.trim() || !apiUrl) { setFormError("Task title is required."); return; }
+        setFormError('');
         try {
             const res = await fetch(`${apiUrl}/api/tasks/${editingTask._id}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify(taskData),
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(taskData)
             });
             const data = await res.json();
-            if(data.success) {
-                setTasks(prev => prev.map(t => t._id === data.data._id ? data.data : t));
+            if (data.success) {
                 setIsTaskModalOpen(false);
+                setEditingTask(null);
+                await fetchTasks();
+            } else {
+                setFormError(data.msg || "Failed to update task.");
             }
-        } catch(err) { console.error(err); }
+        } catch (error) {
+            setFormError("An error occurred.");
+        }
     };
     const handleDeleteTask = async (taskId) => {
         if (!apiUrl) return;
         try {
-            await fetch(`${apiUrl}/api/tasks/${taskId}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-            setTasks(prev => prev.filter(t => t._id !== taskId));
-        } catch (err) { console.error(err); }
+            await fetch(`${apiUrl}/api/tasks/${taskId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+            await fetchTasks();
+        } catch (error) {
+            setError("Failed to delete task.");
+        }
     };
     const onDragEnd = async (result) => {
         const { destination, source, draggableId } = result;
-        if (!destination || !apiUrl) return;
-
-        setTasks(prevTasks => {
-            const task = prevTasks.find(t => t._id === draggableId);
-            if(task) task.status = destination.droppableId;
-            return [...prevTasks];
-        });
+        if (!destination || (destination.droppableId === source.droppableId && destination.index === source.index) || !apiUrl) return;
+        
+        const originalTasks = tasks;
+        const updatedTasks = tasks.map(t => t._id === draggableId ? {...t, status: destination.droppableId} : t);
+        setTasks(updatedTasks);
 
         try {
             await fetch(`${apiUrl}/api/tasks/${draggableId}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ status: destination.droppableId }),
             });
-        } catch (error) { console.error("Failed to update task status:", error); }
+        } catch (error) {
+            setTasks(originalTasks);
+            console.error("Failed to update task status:", error);
+        }
     };
+
+    // --- FIX: Add the handleSummarizeTask function ---
+    const handleSummarizeTask = async (task) => {
+        if (!apiUrl) return;
+        try {
+            const res = await fetch(`${apiUrl}/api/ai/summarize`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ title: task.title, description: task.description }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                // Update the task description with the summary
+                await fetch(`${apiUrl}/api/tasks/${task._id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ description: data.data }),
+                });
+                await fetchTasks(); // Refetch tasks to show the updated description
+            }
+        } catch (error) {
+            console.error("Failed to summarize task:", error);
+        }
+    };
+
     const handleOpenAddTaskModal = () => {
         setEditingTask(null);
         setTaskData({ title: '', description: '', priority: 'Medium', dueDate: '', assignee: '' });
@@ -316,19 +349,16 @@ export default function ProjectPage() {
         });
         setIsTaskModalOpen(true);
     };
-    const handleSummarizeTask = async(task) => { /* AI logic here */ };
 
     if (loading || authLoading) return <div className="flex justify-center items-center min-h-screen"><p>Loading project...</p></div>;
     if (error) return <div className="flex justify-center items-center min-h-screen"><p className="text-red-500">Error: {error}</p></div>;
     if (!project) return <div className="flex justify-center items-center min-h-screen"><p>Project not found.</p></div>;
 
-    const columns = ['To Do', 'In Progress', 'Done'];
-
     return (
         <>
             <div className="min-h-screen bg-gray-100">
                 <header className="bg-white shadow-sm">
-                     <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+                    <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
                         <Link href="/dashboard" className="text-sm font-medium text-indigo-600 hover:text-indigo-500 inline-flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                             Back to Dashboard
@@ -350,9 +380,7 @@ export default function ProjectPage() {
                                     memberUser && (
                                         <div key={memberUser._id} className="flex items-center justify-between pt-4 first:pt-0">
                                             <div className="flex items-center">
-                                                <div className="h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold">
-                                                    {memberUser.name?.charAt(0).toUpperCase() || '?'}
-                                                </div>
+                                                <div className="h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold">{memberUser.name?.charAt(0).toUpperCase() || '?'}</div>
                                                 <div className="ml-4">
                                                     <p className="font-semibold text-gray-800">{memberUser.name || 'Unknown User'}</p>
                                                     <p className="text-sm text-gray-500">{memberUser.email}</p>
@@ -395,16 +423,24 @@ export default function ProjectPage() {
                         <DragDropContext onDragEnd={onDragEnd}>
                             <div className="flex flex-col md:flex-row gap-8 overflow-x-auto pb-4">
                                 {columns.map(status => (
-                                    <KanbanColumn key={status} title={status} tasks={tasks.filter(t => t.status === status)} onOpenModal={handleOpenAddTaskModal} onDeleteTask={handleDeleteTask} onEditTask={handleOpenEditTaskModal} onSummarizeTask={handleSummarizeTask} />
+                                    <KanbanColumn
+                                        key={status}
+                                        title={status}
+                                        tasks={tasks.filter(t => t.status === status)}
+                                        onOpenModal={handleOpenAddTaskModal}
+                                        onDeleteTask={handleDeleteTask}
+                                        onEditTask={handleOpenEditTaskModal}
+                                        onSummarizeTask={handleSummarizeTask} // <-- Pass the function here
+                                    />
                                 ))}
                             </div>
                         </DragDropContext>
                     </div>
                 </main>
             </div>
-
+            
             <Modal isOpen={isRemoveModalOpen} onClose={() => setIsRemoveModalOpen(false)} title="Confirm Member Removal">
-                 {memberToRemove && (
+                {memberToRemove && (
                     <div>
                         <p className="text-sm text-gray-600">Are you sure you want to remove <span className="font-bold">{memberToRemove.user.name}</span> from this project?</p>
                         <div className="mt-6 flex justify-end space-x-3">
@@ -420,26 +456,22 @@ export default function ProjectPage() {
                     <div className="space-y-4">
                         <div>
                             <label htmlFor="title" className="block text-sm font-medium text-gray-700">Task Title</label>
-                            <input type="text" name="title" id="title" value={taskData.title} onChange={handleTaskFormChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500" required/>
+                            <input type="text" name="title" id="title" value={taskData.title} onChange={handleTaskFormChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required />
                         </div>
                         <div>
                             <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description (Optional)</label>
-                            <textarea id="description" name="description" rows="3" value={taskData.description} onChange={handleTaskFormChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900"></textarea>
+                            <textarea id="description" name="description" rows="3" value={taskData.description} onChange={handleTaskFormChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
                         </div>
                         <div>
                             <label htmlFor="assignee" className="block text-sm font-medium text-gray-700">Assign To</label>
                             <select id="assignee" name="assignee" value={taskData.assignee} onChange={handleTaskFormChange} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white text-gray-900">
                                 <option value="">Unassigned</option>
                                 {project?.members && project.members.map(member => (
-                                    member.user && (
-                                        <option key={member.user._id} value={member.user._id} className="text-gray-900">
-                                            {member.user?.name || 'Unnamed User'}
-                                        </option>
-                                    )
+                                    member.user && (<option key={member.user._id} value={member.user._id} className="text-gray-900">{member.user?.name || 'Unnamed User'}</option>)
                                 ))}
                             </select>
                         </div>
-                         <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label htmlFor="priority" className="block text-sm font-medium text-gray-700">Priority</label>
                                 <select id="priority" name="priority" value={taskData.priority} onChange={handleTaskFormChange} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white text-gray-900">
@@ -450,14 +482,14 @@ export default function ProjectPage() {
                             </div>
                             <div>
                                 <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700">Due Date</label>
-                                <input type="date" id="dueDate" name="dueDate" value={taskData.dueDate} onChange={handleTaskFormChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900"/>
+                                <input type="date" id="dueDate" name="dueDate" value={taskData.dueDate} onChange={handleTaskFormChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900" />
                             </div>
                         </div>
                         {formError && <p className="text-sm text-red-600">{formError}</p>}
                     </div>
                     <div className="mt-6 flex justify-end space-x-3">
-                        <button type="button" onClick={() => setIsTaskModalOpen(false)} className="py-2 px-4 border rounded-md text-sm font-medium bg-white hover:bg-gray-50 text-gray-700">Cancel</button>
-                        <button type="submit" className="py-2 px-4 border rounded-md text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">{editingTask ? 'Update Task' : 'Add Task'}</button>
+                        <button type="button" onClick={() => setIsTaskModalOpen(false)} className="py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">Cancel</button>
+                        <button type="submit" className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">{editingTask ? 'Update Task' : 'Add Task'}</button>
                     </div>
                 </form>
             </Modal>
@@ -467,8 +499,8 @@ export default function ProjectPage() {
                     <svg className={`h-6 w-6 transform transition-transform ${isChatOpen ? 'rotate-45' : 'rotate-0'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.862 9.862 0 01-4-.8L3 20l1.2-3.6A8 8 0 113 12" /></svg>
                 </button>
             </div>
-            <div className={`fixed right-6 bottom-20 z-40 transform transition-transform duration-300 ${isChatOpen ? 'translate-x-0' : 'translate-x-full right-0'}`} style={{ width: 380, height: 'calc(100vh - 10rem)' }}>
-                 <div className="h-full w-full bg-white shadow-2xl rounded-lg overflow-hidden flex flex-col">
+            <div className={`fixed right-6 bottom-6 z-40 transform transition-transform duration-300 ${isChatOpen ? 'translate-x-full' : 'translate-x-[calc(100%-400px)]'}`} style={{ width: 380, height: '80vh' }}>
+                <div className="h-full w-full bg-white shadow-2xl rounded-lg overflow-hidden flex flex-col">
                     <div className="flex items-center justify-between px-4 py-2 border-b">
                         <div className="flex items-center gap-3"><div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-semibold">C</div><div><p className="text-sm font-semibold">Project Chat</p><p className="text-xs text-gray-500">Chat with your team</p></div></div>
                         <button onClick={() => setIsChatOpen(false)} aria-label="Close chat" className="px-3 py-1 rounded-md hover:bg-gray-100">
