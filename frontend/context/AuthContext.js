@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation'; // Import useRouter and usePathname
+import { useRouter, usePathname } from 'next/navigation';
 import { jwtDecode } from 'jwt-decode';
 
 const AuthContext = createContext();
@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
     }, []);
 
-    // --- NEW: This effect handles all redirection logic ---
+    // This effect handles all redirection logic
     useEffect(() => {
         if (loading) return; // Wait until the initial loading is done
 
@@ -43,7 +43,10 @@ export const AuthProvider = ({ children }) => {
 
         // If the user is not logged in and tries to access a protected page, redirect to login
         if (!user && !isAuthPage) {
-            router.push('/login');
+            // Allow access to the root page, but redirect from other protected pages
+            if(pathname !== '/') {
+                 router.push('/login');
+            }
         }
 
     }, [user, loading, pathname, router]);
@@ -51,7 +54,9 @@ export const AuthProvider = ({ children }) => {
 
     const loginAction = async (credentials) => {
         try {
-            const res = await fetch('http://localhost:5001/api/auth/login', {
+            // --- FIX: Use the environment variable for the API URL ---
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+            const res = await fetch(`${apiUrl}/api/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(credentials),
@@ -67,6 +72,7 @@ export const AuthProvider = ({ children }) => {
                 return { success: false, message: data.msg };
             }
         } catch (error) {
+            console.error(error); // Log the actual error for debugging
             return { success: false, message: 'Login failed due to a network error.' };
         }
     };
@@ -90,3 +96,4 @@ export const AuthProvider = ({ children }) => {
 export const useAuth = () => {
     return useContext(AuthContext);
 };
+
